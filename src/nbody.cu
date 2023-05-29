@@ -19,7 +19,6 @@
 #define G 6.674e-11
 
 
-
 void CHECK_CUDA(cudaError_t err) {
     if (err != cudaSuccess) {
         std::cerr << "Error: " << cudaGetErrorString(err) << std::endl;
@@ -80,7 +79,7 @@ extern "C" void launchInitKernel(unsigned int numBlocks, unsigned int threadsPer
     }
 }
 
-extern "C" void launchGravityKernel(unsigned int numBlocks, unsigned int threadsPerBlock, float3* positions, float3* velocities, char* type) {
+void launchGravityKernel(unsigned int numBlocks, unsigned int threadsPerBlock, float3* positions, float3* velocities) {
     cudaError_t cudaStatus;
     unsigned int sqrtThreads = (unsigned int)sqrt(threadsPerBlock);
     // unsigned int sqrtThreads = threadsPerBlock;

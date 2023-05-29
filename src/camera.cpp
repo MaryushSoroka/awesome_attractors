@@ -83,8 +83,8 @@ void Camera::updateCamera(GLFWwindow* window) {
         position -= up * deltaTime * speed;
     }
 
-    std::cout << position.x << " " << position.y << " " << position.z << "      ";
-    std::cout << horizontalAngle << " " << verticalAngle << " " << std::endl;
+    // std::cout << position.x << " " << position.y << " " << position.z << "      ";
+    // std::cout << horizontalAngle << " " << verticalAngle << " " << std::endl;
 
     // Projection matrix : 45&deg; Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
     projectionMatrix = glm::perspective(glm::radians(fov), (float) width / (float) height, 1.0f, 10000000.0f);

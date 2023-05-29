@@ -41,6 +41,7 @@ int main(int argc, char** argv)
         return -1;
     }
     glfwMakeContextCurrent(window);
+    glfwSwapInterval(0);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     // glad: load all OpenGL function pointers
@@ -83,14 +84,28 @@ int main(int argc, char** argv)
     
     
     particles.texturePath = "../textures/test_texture.png";
-    particles.type = "Izawa";  //Pickover, Chen, Lorenz, Izawa
     particles.initializeParticles(numBodies);
+    particles.type = "Izawa";  //Pickover, Chen, Lorenz, Izawa
     glEnable(GL_PROGRAM_POINT_SIZE); 
 
+
+     double lastTime = glfwGetTime();
+    int nbFrames = 0;
+
     // render loop
-    std::cout << "Starting main loop" << std::endl;
     while (!glfwWindowShouldClose(window))
     {   
+
+         // Measure speed
+        double currentTime = glfwGetTime();
+        nbFrames++;
+        if ( currentTime - lastTime >= 1.0 ){ // If last prinf() was more than 1 sec ago
+            // printf and reset timer
+            printf("%f ms/frame; FPS: %f\n", 1000.0/double(nbFrames), double(nbFrames));
+            nbFrames = 0;
+            lastTime += 1.0;
+        }
+
         processInput(window);
 
         camera.updateCamera(window);

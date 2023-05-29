@@ -20,21 +20,17 @@
 //must set public variable texturePath before calling!
 void Particles::initializeParticles(unsigned int numBodies) {
     if (texturePath != NULL) {
-   //     std::cout << "here first" << std::endl;
         calculateKernelParams(numBodies);
         createParticleBuffers();
-    //    std::cout << "here second" << std::endl;
         loadTexture();
 
         size_t size;
         CHECK_CUDA(cudaGraphicsMapResources(1, &resources[0], 0));
-
         CHECK_CUDA(cudaGraphicsResourceGetMappedPointer((void**)&buffers[0], &size, resources[0]));
 
-        launchInitKernel(numBlocks, threadsPerBlock, buffers[0], type);
+        launchInitKernel(numBlocks, threadsPerBlock, buffers[0]);
 
         CHECK_CUDA(cudaGraphicsUnmapResources(1, &resources[0], NULL));
-
     }
     else {
         std::cout << "No texture path provided" << std::endl;
@@ -162,8 +158,8 @@ void Particles::loadTexture() {
 	
 	int width, height, nrChannels;
     unsigned char *data = stbi_load(texturePath, &width, &height, &nrChannels, 0);
-    std::cout << nrChannels  << std::endl;
-
+    
+    std::cout << "nrChannels " << nrChannels << std::endl;
 	
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);	
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
