@@ -8,6 +8,7 @@
 
 #include "obj_renderer.hpp"
 #include "particle_renderer.hpp"
+#include "attractor.hpp"
 
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -18,7 +19,7 @@
 
 
 //must set public variable texturePath before calling!
-void Particles::initializeParticles(unsigned int numBodies) {
+void Particles::initializeParticles(unsigned int numBodies, Attractor* attr) {
     if (texturePath != NULL) {
         calculateKernelParams(numBodies);
         createParticleBuffers();
@@ -28,7 +29,7 @@ void Particles::initializeParticles(unsigned int numBodies) {
         CHECK_CUDA(cudaGraphicsMapResources(1, &resources[0], 0));
         CHECK_CUDA(cudaGraphicsResourceGetMappedPointer((void**)&buffers[0], &size, resources[0]));
 
-        launchInitKernel(numBlocks, threadsPerBlock, buffers[0]);
+        attr->init(numBlocks, threadsPerBlock, buffers[0]);
 
         CHECK_CUDA(cudaGraphicsUnmapResources(1, &resources[0], NULL));
     }
@@ -50,7 +51,7 @@ void Particles::calculateKernelParams(unsigned int numBodies) {
     threadsPerBlock = 1024;
 }
 
-void Particles::update() {
+double Particles::update(Attractor* attr) {
     
     size_t size;
     
@@ -58,11 +59,15 @@ void Particles::update() {
     CHECK_CUDA(cudaGraphicsResourceGetMappedPointer((void**)&buffers[0], &size, resources[0]));
     CHECK_CUDA(cudaGraphicsResourceGetMappedPointer((void**)&buffers[1], &size, resources[1]));
 
-    launchGravityKernel(numBlocks, threadsPerBlock, buffers[0], buffers[1], type);
+    double ms = attr->step(numBlocks, threadsPerBlock, buffers[0], buffers[1]);
+    // std::cout << "Cuda frame calculation time, ms: " << 1000 * ms << std::endl;
+    // launchGravityKernel(numBlocks, threadsPerBlock, buffers[0], buffers[1], type);
 
     CHECK_CUDA(cudaGraphicsUnmapResources(2, resources, NULL));
 
     glBindBuffer(GL_ARRAY_BUFFER, particles_vertex_buffer);
+
+    return ms;
 }
 
 void Particles::createParticleBuffers() {
@@ -170,9 +175,9 @@ void Particles::loadTexture() {
 	if (data) {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         GLenum err;
-         while ((err = glGetError()) != GL_NO_ERROR) {
-        std::cerr << "OpenGL error: " << err << std::endl;
-         }
+        while ((err = glGetError()) != GL_NO_ERROR) {
+            std::cerr << "OpenGL error: " << err << std::endl;
+        }
         glGenerateMipmap(GL_TEXTURE_2D);
 	}
 	else {
@@ -180,8 +185,8 @@ void Particles::loadTexture() {
 	}
     std::cout << "after"<< std::endl;
 	stbi_image_free(data);
-    glEnable(GL_DEPTH_TEST);
 
+    glEnable(GL_DEPTH_TEST);
 	// glEnable(GL_BLEND);
 	// glBlendFunc(GL_ONE, GL_ONE);
 

@@ -12,6 +12,7 @@ class Camera {
         float speed = 0.01f;
         float mouseSpeed = 3.0f;
         float boost_speed = 0.07f;
+        glm::vec3 position = glm::vec3(1,0,0);
 
         Camera() {};
 
@@ -25,7 +26,6 @@ class Camera {
         glm::mat4 projectionMatrix;
         glm::mat4 viewMatrix;
 
-        glm::vec3 position = glm::vec3(1,0,0);
         float horizontalAngle = 0.0f;
         float verticalAngle = 0.0f;
         float deltaTime;

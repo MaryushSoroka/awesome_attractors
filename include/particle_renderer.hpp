@@ -5,6 +5,8 @@
 #include <cuda_gl_interop.h>
 #include <glm/glm.hpp>
 
+#include <attractor.hpp>
+
 
 
 static const GLfloat p_vertex_buffer_data[] = {
@@ -30,9 +32,9 @@ class Particles {
         const char * texturePath;
         char * type;
         
-        void initializeParticles(unsigned int numBodies);
+        void initializeParticles(unsigned int numBodies, Attractor* attr);
         void display();
-        void update();
+        double update(Attractor* attr);
         void destroy();
 
     private:  

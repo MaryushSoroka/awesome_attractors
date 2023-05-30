@@ -15,20 +15,16 @@ void CHECK_CUDA(cudaError_t err);
 
 void setDevice();
 
-extern "C" void launchInitKernel(unsigned int numBlocks, unsigned int threadsPerBlock, float3* positions, char* type);
+void launchInitKernel(unsigned int numBlocks, unsigned int threadsPerBlock, float3* positions, float* bounds_h);
 
-extern "C" void launchGravityKernel(unsigned int numBlocks, unsigned int threadsPerBlock, float3* positions, float3* velocities, char* type);
+void launchLorentzKernel(unsigned int numBlocks, unsigned int threadsPerBlock, float3* positions, float3* velocities, float dt);
+void launchChenKernel(unsigned int numBlocks, unsigned int threadsPerBlock, float3* positions, float3* velocities, float dt);
+void launchIsawaKernel(unsigned int numBlocks, unsigned int threadsPerBlock, float3* positions, float3* velocities, float dt);
 
-extern "C" __global__ void plane(curandState *states, float3* positions, float* bounds);
+ __global__ void plane(curandState *states, float3* positions, float* bounds);
 
-__global__ void gravityKernel(float3* positions, float3* velocities, float mass, float dt);
-
-extern "C" __global__ void lorenzKernel(float3* positions, float3* d_velocity, float mass, float dt);
-
-//__global__ void pickoverKernel(float3* positions, float3* d_velocity, float mass, float dt);
-
-__global__ void chenKernel(float3* positions, float3* d_velocity, float mass, float dt);
-
-__global__ void IsawaKernel(float3* positions, float3* d_velocity, float mass, float dt);
+__global__ void lorenzKernel(float3* positions, float3* d_velocity, float dt);
+__global__ void chenKernel(float3* positions, float3* d_velocity, float dt);
+__global__ void IsawaKernel(float3* positions, float3* d_velocity, float dt);
 
 #endif

@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include <camera.hpp>
+#include <attractor.hpp>
 #include <shaders.hpp>
 #include <objloader.hpp>
 #include <obj_renderer.hpp>
@@ -15,6 +16,7 @@
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 //variables
 const unsigned int width = 1920;
@@ -22,6 +24,8 @@ const unsigned int height = 1080;
 
 GLuint matrixID;
 glm::mat4 mvp;
+
+bool pause = false;
 
 int main(int argc, char** argv) 
 {
@@ -41,8 +45,9 @@ int main(int argc, char** argv)
         return -1;
     }
     glfwMakeContextCurrent(window);
-    glfwSwapInterval(0);
+    // glfwSwapInterval(0);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetKeyCallback(window, key_callback);
 
     // glad: load all OpenGL function pointers
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -70,7 +75,12 @@ int main(int argc, char** argv)
     }
 
     //initialize class members
+    Attractor *attr = new Chen();
+
     Camera camera;
+    camera.position = attr->cam_position;
+    camera.speed = attr->cam_speed; 
+
     Shaders shaders;
     Particles particles;
     
@@ -84,28 +94,18 @@ int main(int argc, char** argv)
     
     
     particles.texturePath = "../textures/test_texture.png";
-    particles.initializeParticles(numBodies);
-    particles.type = "Izawa";  //Pickover, Chen, Lorenz, Izawa
+    // particles.type = "Chen";  //Pickover, Chen, Lorenz, Izawa
+    particles.initializeParticles(numBodies, attr);
     glEnable(GL_PROGRAM_POINT_SIZE); 
 
 
-     double lastTime = glfwGetTime();
+    double lastTime = glfwGetTime();
     int nbFrames = 0;
+    double ms = 0;
 
     // render loop
     while (!glfwWindowShouldClose(window))
-    {   
-
-         // Measure speed
-        double currentTime = glfwGetTime();
-        nbFrames++;
-        if ( currentTime - lastTime >= 1.0 ){ // If last prinf() was more than 1 sec ago
-            // printf and reset timer
-            printf("%f ms/frame; FPS: %f\n", 1000.0/double(nbFrames), double(nbFrames));
-            nbFrames = 0;
-            lastTime += 1.0;
-        }
-
+    {  
         processInput(window);
 
         camera.updateCamera(window);
@@ -117,11 +117,24 @@ int main(int argc, char** argv)
 
         glUniformMatrix4fv(matrixID, 1, GL_FALSE, &mvp[0][0]);
 
-        particles.update();
+        if (!pause)
+            ms = particles.update(attr);
+
+        double currentTime = glfwGetTime();
+        nbFrames++;
+        if ( currentTime - lastTime >= 1.0 ){ // If last prinf() was more than 1 sec ago
+            // printf and reset timer
+            printf("%f ms/frame; FPS: %f\n", 1000.0/double(nbFrames), double(nbFrames));
+            std::cout << "CUDA frame calculation time, ms: " << 1000. * ms << std::endl;
+            nbFrames = 0;
+            lastTime += 1.0;
+        }
+
         particles.display();
         
         glfwSwapBuffers(window);
         glfwPollEvents();
+
     }
 
     //delete various things
@@ -131,6 +144,14 @@ int main(int argc, char** argv)
     //end program
 	glfwTerminate();
     return 0;
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
+    {
+        pause = pause ? false : true;
+    }
 }
 
 //check if window should close
